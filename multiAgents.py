@@ -67,7 +67,9 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
+
         # Useful information you can extract from a GameState (pacman.py)
+
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
@@ -75,8 +77,115 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        currentNumPellets = currentGameState.getNumFood()
+        successorNumPellets = successorGameState.getNumFood()
 
+
+        successorGameState = currentGameState.generatePacmanSuccessor(action)
+
+        successorLoss = successorGameState.isLose() #boolean
+        successorWin = successorGameState.isWin() #boolean
+
+        if successorLoss:
+            return -2**30
+        elif successorWin:
+            return 2**31-1
+        points = 0
+
+        currentNumPellets = currentGameState.getNumFood()
+        successorNumPellets = successorGameState.getNumFood()
+
+        if successorNumPellets < currentNumPellets:
+            points += 1
+
+        position = successorGameState.getPacmanPosition()
+        shortestDistanceTofood = 2**31-1
+
+        foodList = newFood.asList()
+
+        for food in foodList:
+            if manhattanDistance(food, position) < shortestDistanceTofood:
+                shortestDistanceTofood = manhattanDistance(food, position)
+
+        points += 1/(shortestDistanceTofood)
+        closestGhostPosition = 2**3-1
+        i = 0
+
+        newGhostStates = successorGameState.getGhostStates()
+        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+
+        for i, ghostPosition in enumerate(successorGameState.getGhostPositions()):
+            if manhattanDistance(ghostPosition, position) < closestGhostPosition:
+                closestGhostPosition = manhattanDistance(ghostPosition, position)
+
+        points -= 1/closestGhostPosition
+
+        return points
+
+    """ 
+    
+
+
+def breadthFirstSearch(problem: SearchProblem):
+    "*** YOUR CODE HERE ***"
+
+    from game import Directions
+    n = Directions.NORTH
+    e = Directions.EAST
+    s = Directions.SOUTH
+    w = Directions.WEST
+
+    visited = []
+    que = util.Queue()
+    currentlocation = problem.getStartState()
+    que.push(currentlocation)
+    parentsdic = {}
+    successordic = {}
+    goalState = None
+    parentsdic[currentlocation] = None
+    #visited.append(currentlocation)
+
+
+    while not que.isEmpty():
+        currentlocation = que.pop()
+        if (problem.isGoalState(currentlocation)):
+            goalState = currentlocation
+            stak = util.Stack()
+            break;
+        visited.append(currentlocation)
+        for sucessor in problem.getSuccessors(currentlocation):
+            location = sucessor[0]
+            if location not in visited:
+                parentsdic[location] = currentlocation
+                successordic[location] = sucessor
+                que.push(location)
+                visited.append(location)
+
+
+    child = goalState
+    parent = parentsdic[goalState]
+    directions = []
+
+    while parent != None:
+        directions.insert(0,successordic[child][1])
+        child = parent
+        parent = parentsdic[child]
+
+    return directions
+
+
+def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:
+
+    x1, y1 = point1
+    x2, y2 = point2
+    walls = gameState.getWalls()
+    assert not walls[x1][y1], 'point1 is a wall: ' + str(point1)
+    assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
+    prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
+    return len(breadthFirstSearch(prob))
+
+    """
 def scoreEvaluationFunction(currentGameState: GameState):
     """
     This default evaluation function just returns the score of the state.
