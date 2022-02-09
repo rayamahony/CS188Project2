@@ -159,30 +159,34 @@ class MinimaxAgent(MultiAgentSearchAgent):
     Your minimax agent (question 2)
     """
 
-
+    bestaction = None
+    bestvalue = - math.inf
 
     def minimax(self, gameState, originalDepth, currentdepth, numAgents, currentAgent):
 
-        bestaction = None
-        bestvalue = - math.inf
-
         if gameState.isWin() or gameState.isLose() or currentdepth == 0:
-            return self.evaluationFunction(gameState), None
+            return self.evaluationFunction(gameState)
 
         if currentAgent == 0:
             value = - math.inf
             for legalAction in gameState.getLegalActions(0):
-                for agent in range(1, numAgents):
-                    value = max(value, self.minimax(gameState.generateSuccessor(0, legalAction), originalDepth, currentdepth, numAgents, agent)[0])
-                    if value >= bestvalue:
-                        bestvalue = value
-                        bestaction = legalAction
-            return value, bestaction
+                value = max(value, self.minimax(gameState.generateSuccessor(0, legalAction), originalDepth, currentdepth, numAgents, currentAgent + 1))
+            if value >= self.bestvalue and originalDepth == currentdepth:
+                self.bestvalue = value
+                self.bestaction = legalAction
+            return value
         else:
             value = math.inf
             for legalAction in gameState.getLegalActions(currentAgent):
-                value = min(value, self.minimax(gameState.generateSuccessor(currentAgent, legalAction), originalDepth, currentdepth - 1, numAgents, 0)[0])
-            return value, None
+                if currentAgent == numAgents - 1:
+                    nextagent = 0
+                    nextdepth = currentdepth - 1
+                else:
+                    nextagent = currentAgent + 1
+                    nextdepth = currentdepth
+
+                value = min(value, self.minimax(gameState.generateSuccessor(currentAgent, legalAction), originalDepth, nextdepth, numAgents, nextagent))
+            return value
 
 
 
@@ -213,9 +217,14 @@ class MinimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
 
 
+        self.bestaction = None
+        self.bestvalue = - math.inf
+
         depth = self.depth
         numAgents = gameState.getNumAgents()
-        return self.minimax(gameState, depth, depth, numAgents, 0)[1]
+        self.minimax(gameState, depth, depth, numAgents, 0)
+
+        return self.bestaction
 
 
 
