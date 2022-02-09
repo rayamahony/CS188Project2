@@ -15,6 +15,7 @@
 from util import manhattanDistance
 from game import Directions
 import random, util
+import math
 
 from game import Agent
 from pacman import GameState
@@ -123,69 +124,6 @@ class ReflexAgent(Agent):
 
         return points
 
-    """ 
-    
-
-
-def breadthFirstSearch(problem: SearchProblem):
-    "*** YOUR CODE HERE ***"
-
-    from game import Directions
-    n = Directions.NORTH
-    e = Directions.EAST
-    s = Directions.SOUTH
-    w = Directions.WEST
-
-    visited = []
-    que = util.Queue()
-    currentlocation = problem.getStartState()
-    que.push(currentlocation)
-    parentsdic = {}
-    successordic = {}
-    goalState = None
-    parentsdic[currentlocation] = None
-    #visited.append(currentlocation)
-
-
-    while not que.isEmpty():
-        currentlocation = que.pop()
-        if (problem.isGoalState(currentlocation)):
-            goalState = currentlocation
-            stak = util.Stack()
-            break;
-        visited.append(currentlocation)
-        for sucessor in problem.getSuccessors(currentlocation):
-            location = sucessor[0]
-            if location not in visited:
-                parentsdic[location] = currentlocation
-                successordic[location] = sucessor
-                que.push(location)
-                visited.append(location)
-
-
-    child = goalState
-    parent = parentsdic[goalState]
-    directions = []
-
-    while parent != None:
-        directions.insert(0,successordic[child][1])
-        child = parent
-        parent = parentsdic[child]
-
-    return directions
-
-
-def mazeDistance(point1: Tuple[int, int], point2: Tuple[int, int], gameState: pacman.GameState) -> int:
-
-    x1, y1 = point1
-    x2, y2 = point2
-    walls = gameState.getWalls()
-    assert not walls[x1][y1], 'point1 is a wall: ' + str(point1)
-    assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
-    prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
-    return len(breadthFirstSearch(prob))
-
-    """
 def scoreEvaluationFunction(currentGameState: GameState):
     """
     This default evaluation function just returns the score of the state.
@@ -221,6 +159,34 @@ class MinimaxAgent(MultiAgentSearchAgent):
     Your minimax agent (question 2)
     """
 
+
+
+    def minimax(self, gameState, originalDepth, currentdepth, numAgents, currentAgent):
+
+        bestaction = None
+        bestvalue = - math.inf
+
+        if gameState.isWin() or gameState.isLose() or currentdepth == 0:
+            return self.evaluationFunction(gameState), None
+
+        if currentAgent == 0:
+            value = - math.inf
+            for legalAction in gameState.getLegalActions(0):
+                for agent in range(1, numAgents):
+                    value = max(value, self.minimax(gameState.generateSuccessor(0, legalAction), originalDepth, currentdepth, numAgents, agent)[0])
+                    if value >= bestvalue:
+                        bestvalue = value
+                        bestaction = legalAction
+            return value, bestaction
+        else:
+            value = math.inf
+            for legalAction in gameState.getLegalActions(currentAgent):
+                value = min(value, self.minimax(gameState.generateSuccessor(currentAgent, legalAction), originalDepth, currentdepth - 1, numAgents, 0)[0])
+            return value, None
+
+
+
+
     def getAction(self, gameState: GameState):
         """
         Returns the minimax action from the current gameState using self.depth
@@ -245,7 +211,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+
+        depth = self.depth
+        numAgents = gameState.getNumAgents()
+        return self.minimax(gameState, depth, depth, numAgents, 0)[1]
+
+
+
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
