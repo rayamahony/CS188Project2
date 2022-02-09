@@ -163,6 +163,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
     def minimax(self, gameState, originalDepth, currentdepth, numAgents, currentAgent):
 
+        print("currentAgent", currentAgent)
         bestaction = None
         bestvalue = - math.inf
 
@@ -172,6 +173,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if currentAgent == 0:
             value = - math.inf
             for legalAction in gameState.getLegalActions(0):
+                print("legalAction", legalAction)
                 value = max(value, self.minimax(gameState.generateSuccessor(0, legalAction), originalDepth, currentdepth, numAgents, 1)[0])
                 if value >= bestvalue:
                     bestvalue = value
@@ -213,7 +215,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-
+        print("start")
         depth = self.depth
         numAgents = gameState.getNumAgents()
         return self.minimax(gameState, depth, depth, numAgents, 0)[1]
